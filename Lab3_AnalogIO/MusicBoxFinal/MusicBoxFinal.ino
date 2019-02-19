@@ -47,6 +47,8 @@ Adafruit_SSD1306 display(OLED_RESET);
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
+static bool VarInC = false;
+
 static int song = 0;
 static int param1 = 0;
 static int param2 = 0;
@@ -69,6 +71,16 @@ void setup() {
 
   // Clear the buffer
   display.clearDisplay();
+
+  screenText("Bitshift Music Box", 3, 3, 1, false); 
+  screenText("By Sky Johnson", 3, 12, 1, false);
+  screenText("For ATLS-3300 Lab3", 3, 21, 1, false);
+  
+  //display.drawLine(1, 37, 100, 37, WHITE);
+  display.drawRect(0, 0, 127,32, WHITE);
+  display.display();
+  delay(4000);
+  
   
   //  //At this point I don't really quite understand what's going on, besides i'm doing some funky stuff with the OC1B pin (pin 10) with the ATMega368
   Serial.begin(112500);
@@ -76,8 +88,10 @@ void setup() {
 
 
   //Using the Arduino's TIMER on pin 9 to create sounds
-  TCCR1B = (TCCR1A & 0xf8) | 1;
+  TCCR1B = (TCCR1A & 0x02) | 1;
+  //TCCR1B = (TCCR1A & 0x02) | 1;
   analogWrite(9,1);
+  //pinMode(9, OUTPUT);
 }
 
 //Send value to Pin9
@@ -106,145 +120,166 @@ void updateP(){
   textUpdate();
 }
 
+//This code to play "Bitshift variations in C minor" was created by Rob Miles a few years ago for a coding golf challenge. I adapted it to work on the Arduino.
+//https://twitter.com/robertskmiles/status/928951433675886594
+byte g(byte i, byte x, byte y, byte o){
+  return ( (3&x&(i*((3&i>>16?"BY}6YB6%":"Qj}6jQ6%")[y%8]+51)>>o))<<4 );
+}
+
 void loop() {
   
   static int debounce=0;
   for(long t=0;;t++){
-
-    //Alllll the songs
-    switch(s1){
-      case 0:
-        putb( t*((t>>9|t>>p2)&p1&t>>6));
-        songtext = "#1 Visy";
-        OriginalParam1Text = "(25)";
-        OriginalParam2Text = "(13)";
-        break;
-      case 1:
-        putb( 
-          (t>>6|t|t>>(t>>16))*p1+((t>>11)&p2)
+    if(VarInC){ //This is suppose to be an easter egg
+      byte n = ++t>>14;
+      byte s = t>>17;
+      byte input = g(t,1,n,12)+g(t,s,n^t>>13,10)+g(t,s/3,n+(t>>11)%3,10)+g(t,s/5,8+n-(t>>10)%3,9);
+      putb(input);
+    }else{
+      //Alllll the songs
+      switch(s1){
+        case 0:
+          putb( t*((t>>9|t>>p2)&p1&t>>6));
+          songtext = "#1 Visy";
+          OriginalParam1Text = "(25)";
+          OriginalParam2Text = "(13)";
+          break;
+        case 1:
+          putb( 
+            (t>>6|t|t>>(t>>16))*p1+((t>>11)&p2)
+            );
+          songtext = "#2 Anon 1";
+          OriginalParam1Text = "(10)";
+          OriginalParam2Text = "(7)";
+          
+          break;
+        case 2:
+          putb( 
+            (t*(t>>8+t>>9)*p2)+sin(t*p1)
           );
-        songtext = "#2 Anon 1";
-        OriginalParam1Text = "(10)";
-        OriginalParam2Text = "(7)";
-        
-        break;
-      case 2:
-        putb( 
-          (t*(t>>8+t>>9)*p2)+sin(t*p1)
-        );
-        songtext = "#3 Viznut Ex.";
-        OriginalParam1Text = "(1)";
-        OriginalParam2Text = "(100)";
-        break;
-      case 3:
-        putb( 
-          t * p1 & (t >> 5) | t * p2 & (t >> 10)
-        );
-        songtext = "#4 Anon 2";
-        OriginalParam1Text = "(10)";
-        OriginalParam2Text = "(20)";
-        break;
-      case 4:
-        putb( 
-          t * 2 & (t >> 10) | t * 3 & (t >> 5) | t * 5 & (t >> 7)
-        );
-        songtext = "#5 ianbishop";
-        OriginalParam1Text = "NA";
-        OriginalParam2Text = "NA";
-        break;
-      case 5:
-        putb( 
-          t * ((t>>2||t>>3||t>>5||t>>7)&p2&t>>11) + (1- p1*sin(t))
-        );
-        songtext = "#6 ianbishop 2";
-        OriginalParam1Text = "(1)";
-        OriginalParam2Text = "(73)";
-        break;
-      case 6:
-        putb( 
-          t * (t/p1)/(p2*2) & (byte)(t-sin(t))
-        );
-        songtext = "#7 DrtyRobo";
-        OriginalParam1Text = "(128)";
-        OriginalParam2Text = "(128)";
-        break;
-      case 7:
-        putb( 
-          (((t>>3)&(t>>9))^(p1)*(byte)sin(t)*p2*(byte)cos(t))*t
-        );
-        songtext = "#8 Anon 3";
-        OriginalParam1Text = "(1)";
-        OriginalParam2Text = "(1)";
-        break;
-      case 8:
-        putb( 
-          t * ((t>>7|t>>3)&p1&t>>p2)
-        );
-        songtext = "#9 Mattho";
-        OriginalParam1Text = "(27)";
-        OriginalParam2Text = "(13)";
-        break;
-      case 9:
-        putb( 
-          (t*(4|7&t>>13)>>((~t>>11)&1)&p1) + p2*((t)*(t>>11&t>>13)*((~t>>9)&3)&127)
-        );
-        songtext = "#10 Stimmer";
-        OriginalParam1Text = "(128)";
-        OriginalParam2Text = "(1)";
-        break;
-      case 10:
-        putb( 
-          p1*t*5&(t>>7)|p2*t*3&(t*4>>10)
-        );
-        songtext = "#11 Miiro";
-        OriginalParam1Text = "(1)";
-        OriginalParam2Text = "(1)";
-        break;
-      case 11:
-        putb( 
-          p2*(t|(t>>9|t>>7))*t&(t>>p1|t>>9)
-        );
-        songtext = "#12 red";
-        OriginalParam1Text = "(11)";
-        OriginalParam2Text = "(1)";
-        break;
-      case 12:
-        putb( 
-          ((t*(t>>8|t>>9)&p1&t>>8))^p2*(t&t>>13|t>>6)
-        );
-        songtext = "#13 xpansive";
-        OriginalParam1Text = "(46)";
-        OriginalParam2Text = "(1)";
-        break;
-      case 13:
-        putb( 
-          ((t&4096/p2)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192/p1)?t<<2:t))
-        );
-        songtext = "#14 skurk";
-        OriginalParam1Text = "(1)";
-        OriginalParam2Text = "(1)";
-        break;
-      case 15:
-        putb( 
-          ((-t&4095)*(255&t*(t&t>>13))>>12)+(p1&t*(234&t>>8&t>>3)>>(3&t>>p2))
-        );
-        songtext = "#15 Tejeez";
-        OriginalParam1Text = "(127)";
-        OriginalParam2Text = "(14)";
-        break;
-      default:
-        songtext = "No Song";
-        OriginalParam1Text = "NA";
-        OriginalParam2Text = "NA";
-        break;
-    }
-
-    //How often to check for updates... I think this causes a bit of a jump
-    if(debounce==0){
-      debounce = 4000;
-      checkParamsChanged();
-    }else{ 
-      debounce--;
+          songtext = "#3 Viznut Ex.";
+          OriginalParam1Text = "(1)";
+          OriginalParam2Text = "(100)";
+          break;
+        case 3:
+          putb( 
+            t * p1 & (t >> 5) | t * p2 & (t >> 10)
+          );
+          songtext = "#4 Anon 2";
+          OriginalParam1Text = "(10)";
+          OriginalParam2Text = "(20)";
+          break;
+        case 4:
+          putb( 
+            t * 2 & (t >> 10) | t * 3 & (t >> 5) | t * 5 & (t >> 7)
+          );
+          songtext = "#5 ianbishop";
+          OriginalParam1Text = "NA";
+          OriginalParam2Text = "NA";
+          break;
+        case 5:
+          putb( 
+            t * ((t>>2||t>>3||t>>5||t>>7)&p2&t>>11) + (1- p1*sin(t))
+          );
+          songtext = "#6 ianbishop 2";
+          OriginalParam1Text = "(1)";
+          OriginalParam2Text = "(73)";
+          break;
+        case 6:
+          putb( 
+            t * (t/p1)/(p2*2) & (byte)(t-sin(t))
+          );
+          songtext = "#7 DrtyRobo";
+          OriginalParam1Text = "(128)";
+          OriginalParam2Text = "(128)";
+          break;
+        case 7:
+          putb( 
+            (((t>>3)&(t>>9))^(p1)*(byte)sin(t)*p2*(byte)cos(t))*t
+          );
+          songtext = "#8 Anon 3";
+          OriginalParam1Text = "(1)";
+          OriginalParam2Text = "(1)";
+          break;
+        case 8:
+          putb( 
+            t * ((t>>7|t>>3)&p1&t>>p2)
+          );
+          songtext = "#9 Mattho";
+          OriginalParam1Text = "(27)";
+          OriginalParam2Text = "(13)";
+          break;
+        case 9:
+          putb( 
+            (t*(4|7&t>>13)>>((~t>>11)&1)&p1) + p2*((t)*(t>>11&t>>13)*((~t>>9)&3)&127)
+          );
+          songtext = "#10 Stimmer";
+          OriginalParam1Text = "(128)";
+          OriginalParam2Text = "(1)";
+          break;
+        case 10:
+          putb( 
+            p1*t*5&(t>>7)|p2*t*3&(t*4>>10)
+          );
+          songtext = "#11 Miiro";
+          OriginalParam1Text = "(1)";
+          OriginalParam2Text = "(1)";
+          break;
+        case 11:
+          putb( 
+            p2*(t|(t>>9|t>>7))*t&(t>>p1|t>>9)
+          );
+          songtext = "#12 red";
+          OriginalParam1Text = "(11)";
+          OriginalParam2Text = "(1)";
+          break;
+        case 12:
+          putb( 
+            ((t*(t>>8|t>>9)&p1&t>>8))^p2*(t&t>>13|t>>6)
+          );
+          songtext = "#13 xpansive";
+          OriginalParam1Text = "(46)";
+          OriginalParam2Text = "(1)";
+          break;
+        case 13:
+          putb( 
+            ((t&4096/p2)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192/p1)?t<<2:t))
+          );
+          songtext = "#14 skurk";
+          OriginalParam1Text = "(1)";
+          OriginalParam2Text = "(1)";
+          break;
+        case 14:
+          putb( 
+            ((-t&4095)*(255&t*(t&t>>13))>>12)+(p1&t*(234&t>>8&t>>3)>>(3&t>>p2))
+          );
+          songtext = "#15 Tejeez";
+          OriginalParam1Text = "(127)";
+          OriginalParam2Text = "(14)";
+          break;
+        default:
+          if(p1 == 50 && p2 == 50){ //easter egg
+            VarInC = true;
+            display.clearDisplay();
+            screenText("Var In Cm", 10, 3, 2, false); //Slide Pot values
+            screenText("By Rob Miles", 3, 21, 1, false); //Slide Pot values
+            display.drawRect(0, 0, 127,32, WHITE);
+            display.display();
+          }else{
+            songtext = "No Song";
+          }
+          OriginalParam1Text = "NA";
+          OriginalParam2Text = "NA";
+          break;
+      }
+  
+      //How often to check for updates... I think this causes a bit of a jump
+      if(debounce==0){
+        debounce = 4000;
+        checkParamsChanged();
+      }else{ 
+        debounce--;
+      }
     }
   }
 }
@@ -252,7 +287,7 @@ void loop() {
 void textUpdate(){
   display.clearDisplay();
   screenText("Author:", 3, 3, 1, false); //Slide Pot values
-  screenText(songtext, 44, 3, 1, false);
+  screenText(songtext, 49, 3, 1, false);
   
   screenText("Param 1:", 3, 12, 1, false); //Right Pot Values
   screenText(String(p1), 60, 12, 1, false);
