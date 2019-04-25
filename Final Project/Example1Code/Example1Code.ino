@@ -2,7 +2,6 @@
 
 Servo Left;  // create servo object to control a servo
 Servo Right;
-Servo Lift;
 
 const int numReadings = 10;
 int readings[numReadings];      // the readings from the analog input
@@ -13,13 +12,11 @@ int average = 0;                // the average
 int inputPin = A0;
 int Val;
 
-int LIFT_APPROX_VAL = 77;
-
 int Left_MIN_Val = 60;
 int Left_MAX_Val = 160;
 
-int Right_MIN_Val = 20;
-int Right_MAX_Val = 120;
+int Right_MIN_Val = 30;
+int Right_MAX_Val = 90;
 
 //related to sweeping but without delay/for loops
 
@@ -39,7 +36,6 @@ void setup() {
 
   Left.attach(11);
   Right.attach(10);
-  Lift.attach(9);
 
   leftVal = Left_MIN_Val;
   rightVal = Right_MAX_Val;
@@ -61,9 +57,9 @@ void loop() {
   }
   average = total / numReadings;
   
-  Val = map(average, 0, 1023, 77-10, 77+10);
-  Lift.write(Val);
-  
+  Val = map(average, 0, 1023, 0, 180);
+
+  /*
   if(sweep){
     currentTime = millis() - lastEpoch;
     leftVal = (int) (Left_MIN_Val + ((float) (Left_MAX_Val - Left_MIN_Val)/SweepDuration) * currentTime);
@@ -82,6 +78,8 @@ void loop() {
       sweep = true;
     }
   }
+  */
+  leftVal = Val;
   Left.write(leftVal);
   Right.write(rightVal);
   
