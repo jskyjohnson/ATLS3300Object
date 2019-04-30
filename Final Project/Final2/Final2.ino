@@ -80,10 +80,10 @@ void setup() {
 
   //pingTimer = millis();
 
-  a = (float) random(5000, 240000) / 100000.0;
-  b = (float) random(5000, 240000) / 100000.0;
-  c = (float) random(5000, 240000) / 100000.0;
-  d = (float)random(5000, 240000) / 100000.0;
+  a = (float) random(3000, 240000) / 100000.0;
+  b = (float) random(3000, 240000) / 100000.0;
+  c = (float) random(5000, 10000) / 100000.0;
+  d = (float)random(5000, 10000) / 100000.0;
   Serial.print(a);
   Serial.print("\t");
   Serial.print(b);
@@ -99,10 +99,10 @@ void loop() {
   LeftEaser.update();
   RightEaser.update();
   if( LeftEaser.hasArrived() || RightEaser.hasArrived() ) { 
-    ti += 2*PI / 600;
+    ti += 2*PI / 1000;
 
-    tx = 3*sin(a*PI*ti) + sin(c*PI*ti) + 5;
-    ty = 6*cos(b*PI*ti) + cos(d*PI*ti) + 14;
+    tx = 3.5*sin(a*PI*ti) +4.5; //+ sin(c*PI*ti) + 5;
+    ty = 8*cos(b*PI*ti) +12; //+ cos(d*PI*ti) + 15;
      
     rightVal = RightTurnTo(tx, ty);
     leftVal = LeftTurnTo(tx, ty);
